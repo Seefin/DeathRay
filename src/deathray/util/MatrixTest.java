@@ -2,6 +2,9 @@ package deathray.util;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 
 public class MatrixTest {
@@ -59,12 +62,40 @@ public class MatrixTest {
 			}
 		}
 		try {
+			new Matrix<TestDouble>(new TestDouble[][] {null});
+			fail("Shoul throw exception");
+		} catch(Exception e) {
+			assertEquals("Expected NullPointerException", NullPointerException.class,e.getClass());
+		}
+		try {
 			TestDouble ragged[][] = new TestDouble[][] {
 				new TestDouble[] {new TestDouble(1), new TestDouble(5)},
 				new TestDouble[] {new TestDouble(1), new TestDouble(2), new TestDouble(3), new TestDouble(7)},
 				new TestDouble[] {new TestDouble(2), new TestDouble(3)}
 			};
 			new Matrix<TestDouble>(ragged);
+			fail("Should throw illegal argument exception for ragged matrix");
+		} catch(Exception e) {
+			assertEquals("Expected IllegalArgumentException", IllegalArgumentException.class,e.getClass());
+			assertEquals("Message should describe error", "All rows of a matrix should have the same number of columns", e.getMessage());
+		}
+		try {
+			TestDouble ragged[][] = new TestDouble[][] {
+				new TestDouble[] {new TestDouble(1), new TestDouble(5)},
+				new TestDouble[] {new TestDouble(1), new TestDouble(2), new TestDouble(3), new TestDouble(7)},
+				new TestDouble[] {new TestDouble(2), new TestDouble(3)}
+			};
+			List<List<TestDouble>> r1 = new ArrayList<>();
+			for(int r = 0; r < ragged.length; r++) {
+				TestDouble[] row = ragged[r];
+				for(int c = 0; c < row.length; c++) {
+					if(r >= r1.size()) {
+						r1.add(new ArrayList<>());
+					}
+					r1.get(r).add(ragged[r][c]);
+				}
+			}
+			new Matrix<TestDouble>(r1);
 			fail("Should throw illegal argument exception for ragged matrix");
 		} catch(Exception e) {
 			assertEquals("Expected IllegalArgumentException", IllegalArgumentException.class,e.getClass());
@@ -172,10 +203,22 @@ public class MatrixTest {
 	@Test
 	public void testScalarMult() {
 		Matrix<TestDouble> t = new Matrix<>(firstMatrixdata);
+		try {
+			t.scalarMult(null);
+			fail("Expected exception for null scalar");
+		} catch(Exception e) {
+			assertEquals("Expected IllegalArgumentException", IllegalArgumentException.class,e.getClass());
+			assertEquals("Message should describe problem", "Cannot multiply by null", e.getMessage());
+		}
 		Matrix<TestDouble> u = t.scalarMult(scalar);
 		assertEquals("Scaled Matrix has same #rows", t.getRows(),u.getRows());
 		assertEquals("Scaled Matrix has same #cols", t.getColumns(),u.getColumns());
 		assertEquals("Scaled matrix is 2x original", new Matrix<TestDouble>(scaledMatrixdata), u);
+		Matrix<TestDouble> v = t.setValue(null, 0, 0);
+		Matrix<TestDouble> w = v.scalarMult(scalar);
+		assertEquals("Scaled Matrix has same #rows", t.getRows(),w.getRows());
+		assertEquals("Scaled Matrix has same #cols", t.getColumns(),w.getColumns());
+		assertEquals("Scaled matrix is 2x original", new Matrix<TestDouble>(scaledMatrixdata).setValue(null, 0, 0), w);
 	}
 
 	@Test
@@ -190,6 +233,28 @@ public class MatrixTest {
 		assertEquals("Matrix retains #rows after add", t.getRows(), u.getRows());
 		assertEquals("Matrix retains #cols after add", t.getColumns(), u.getColumns());
 		assertEquals("Matrix addition is element-wise", expected, u);
+		try {
+			Matrix<TestDouble> m1 = new Matrix<>(firstMatrixdata);
+			Matrix<TestDouble> m2 = new Matrix<>(secondMatrixData);
+			m1.add(m2);
+			fail("Should throw exception");
+		} catch(Exception e) {
+			assertEquals("Should be IllegalArgumentException", IllegalArgumentException.class,e.getClass());
+			assertEquals("Message should describe issue","Cannot add two matricies of different orders together", e.getMessage());
+		}
+		try {
+			Matrix<TestDouble> m1 = new Matrix<>(firstMatrixdata);
+			Matrix<TestDouble> m2 = new Matrix<>(new TestDouble[][] {
+				new TestDouble[] {new TestDouble(1), new TestDouble(2), new TestDouble(3), new TestDouble(7)},
+				new TestDouble[] {new TestDouble(5), new TestDouble(2), new TestDouble(8), new TestDouble(1)},
+				new TestDouble[] {new TestDouble(5), new TestDouble(2), new TestDouble(8), new TestDouble(1)}
+			});
+			m1.add(m2);
+			fail("Should throw exception");
+		} catch(Exception e) {
+			assertEquals("Should be IllegalArgumentException", IllegalArgumentException.class,e.getClass());
+			assertEquals("Message should describe issue","Cannot add two matricies of different orders together", e.getMessage());
+		}
 	}
 
 	@Test
@@ -204,6 +269,28 @@ public class MatrixTest {
 		assertEquals("Matrix retains #rows after add", t.getRows(), u.getRows());
 		assertEquals("Matrix retains #cols after add", t.getColumns(), u.getColumns());
 		assertEquals("Matrix addition is element-wise", expected, u);
+		try {
+			Matrix<TestDouble> m1 = new Matrix<>(firstMatrixdata);
+			Matrix<TestDouble> m2 = new Matrix<>(secondMatrixData);
+			m1.subtract(m2);
+			fail("Should throw exception");
+		} catch(Exception e) {
+			assertEquals("Should be IllegalArgumentException", IllegalArgumentException.class,e.getClass());
+			assertEquals("Message should describe issue","Cannot subtract two matricies of different orders", e.getMessage());
+		}
+		try {
+			Matrix<TestDouble> m1 = new Matrix<>(firstMatrixdata);
+			Matrix<TestDouble> m2 = new Matrix<>(new TestDouble[][] {
+				new TestDouble[] {new TestDouble(1), new TestDouble(2), new TestDouble(3), new TestDouble(7)},
+				new TestDouble[] {new TestDouble(5), new TestDouble(2), new TestDouble(8), new TestDouble(1)},
+				new TestDouble[] {new TestDouble(5), new TestDouble(2), new TestDouble(8), new TestDouble(1)}
+			});
+			m1.subtract(m2);
+			fail("Should throw exception");
+		} catch(Exception e) {
+			assertEquals("Should be IllegalArgumentException", IllegalArgumentException.class,e.getClass());
+			assertEquals("Message should describe issue","Cannot subtract two matricies of different orders", e.getMessage());
+		}
 	}
 
 	@Test
@@ -240,6 +327,50 @@ public class MatrixTest {
 		assertEquals("Should have similar row count", expected.getRows(), t.getRows());
 		assertEquals("Should have similar columns", expected.getColumns(), t.getColumns());
 		assertEquals("Result is dot product of elements", expected, t);
+		try {
+			Matrix<TestDouble> m3 = new Matrix<>(new TestDouble[][] {
+				new TestDouble[] {new TestDouble(7), new TestDouble(8)},
+				new TestDouble[] {new TestDouble(9), new TestDouble(10)}
+			});
+			m1.multiply(m3);
+			fail("should throw exception");
+		} catch(Exception e) {
+			assertEquals("Should be IllegalArgumentException", IllegalArgumentException.class, e.getClass());
+			assertEquals("Message should describe issue", "Cannot multiple matrix where cols != other.rows", e.getMessage());
+		}
+	}
+	
+	@Test
+	public void testToString() {
+		Matrix<TestDouble> m1 = new Matrix<>(firstMatrixdata);
+		String s = m1.toString();
+		assertNotNull("toString() should not return null", s);
+		assertEquals("Should equal format", "Matrix\n"
+				+ "0: [TestDouble [_value=1.0] TestDouble [_value=5.0] \n"
+				+ "1: [TestDouble [_value=2.0] TestDouble [_value=3.0] \n"
+				+ "2: [TestDouble [_value=1.0] TestDouble [_value=7.0] \n", s);
+	}
+	
+	@Test 
+	public void testHashCode() {
+		Matrix<TestDouble> m1 = new Matrix<TestDouble>(firstMatrixdata);
+		Matrix<TestDouble> m2 = new Matrix<TestDouble>(secondMatrixData);
+		Matrix<TestDouble> m3 = new Matrix<TestDouble>(firstMatrixdata);
+		assertNotEquals("HashCode is unique", m1.hashCode(), m2.hashCode());
+		assertEquals("HashCode is constant", m1.hashCode(), m1.hashCode());
+		assertEquals("HashCode is deteriministic", m1.hashCode(), m3.hashCode());
+	}
+	
+	@Test
+	public void testEquals() {
+		Matrix<TestDouble> m1 = new Matrix<TestDouble>(firstMatrixdata);
+		Matrix<TestDouble> m2 = new Matrix<TestDouble>(secondMatrixData);
+		Matrix<TestDouble> m3 = new Matrix<TestDouble>(firstMatrixdata);
+		assertTrue("Matrix equals self", m1.equals(m1));
+		assertTrue("Matrix with equivalent contents are equal", m1.equals(m3));
+		assertFalse("Matrix doesn't equal non-Matrix self", m1.equals(System.out));
+		assertFalse("Matrix doesn't equal non-equal self", m1.equals(m2));
+		
 	}
 
 	private static final class TestDouble extends ArithmeticPrimitive {

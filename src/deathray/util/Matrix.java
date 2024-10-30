@@ -69,15 +69,11 @@ public final class Matrix<T extends ArithmeticPrimitive> {
 	 * so retrictions there apply here too.
 	 * 
 	 * @param data  Data to initalise the list with
-	 * 
-	 * @throws IllegalArgumentException  If the provided data array argument is null
 	 */
 	public Matrix(T[][] data) {
 		this(data.length,data[0].length);
 		this.matrix.clear();
-		if( data == null || data[0] == null ) {
-			throw new IllegalArgumentException("Cannot create Matrix of null data");
-		}
+
 		final int len = data[0].length;
 		final List<List<T>> dataList = new ArrayList<List<T>>(data.length);
 		for(int r = 0; r < data.length; r++) {
@@ -109,10 +105,9 @@ public final class Matrix<T extends ArithmeticPrimitive> {
 	public Matrix(List<List<T>> data) {
 		this(data.size(), data.get(0).size());
 		this.matrix.clear();
-		final int colSize = getColumns();
-		for(List<T> row: data) {
-			if(row.size() != colSize) {
-				throw new IllegalArgumentException("Can only handle Matricies with equal column lengths");
+		for(List<T> row : data) {
+			if(row.size() != getColumns()) {
+				throw new IllegalArgumentException("All rows of a matrix should have the same number of columns");
 			}
 		}
 		this.matrix.addAll(data);
@@ -393,14 +388,8 @@ public final class Matrix<T extends ArithmeticPrimitive> {
 	 * @param row  Row to get the row vector for
 	 * 
 	 * @return List of elements in the specified row
-	 * 
-	 * @throws IllegalArgumentException If the specifed row lies outside the
-	 * bounds of this matrix
 	 */
 	private List<T> getRowVector(int row){
-		if(row < 0 || row > getRows()) {
-			throw new IllegalArgumentException("Cannot make row vector for row " + row);
-		}
 		return new ArrayList<T>(this.matrix.get(row));
 	}
 	
@@ -412,14 +401,8 @@ public final class Matrix<T extends ArithmeticPrimitive> {
 	 * @param column  Column to get the column vector for
 	 * 
 	 * @return  List of elements in the specified column
-	 * 
-	 * @throws IllegalArgumentException If thespecified column lies outside the 
-	 * bounds of this matrix
 	 */
 	private List<T> getColumnVector(int column){
-		if(column < 0 || column > getColumns()) {
-			throw new IllegalArgumentException("Cannot make column vector for column " + column);
-		}
 		List<T> copy = new ArrayList<>(getRows());
 		for(List<T> row : getMatrixData()) {
 			copy.add(row.get(column));
@@ -438,13 +421,8 @@ public final class Matrix<T extends ArithmeticPrimitive> {
 	 * @param u2  The vector to get the dot product of
 	 * 
 	 * @return The dot product of the specified vectors
-	 * 
-	 * @throws IllegalArgumentException If the supplied vectors differ in length
 	 */
 	private T dotProduct(List<T> u1, List<T> u2) {
-		if( u1.size() != u2.size() ) {
-			throw new IllegalArgumentException("Cannot produce dot product of row/column vectors of differing sizes");
-		}
 		T sum = null;
 		for(int i = 0; i < u1.size(); i++) {
 			if( sum == null ) {
@@ -470,4 +448,19 @@ public final class Matrix<T extends ArithmeticPrimitive> {
 		}
 		return copy;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("Matrix\n");
+		for(int i = 0; i < getRows(); i++) {
+			sb.append(i).append(": [");
+			for(int j = 0; j < getColumns(); j++) {
+				sb.append(getValue(i, j)).append(' ');
+			}
+			sb.append('\n');
+		}
+		return sb.toString();
+	}
+	
+	
 }
