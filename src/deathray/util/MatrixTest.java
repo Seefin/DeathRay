@@ -29,18 +29,18 @@ public class MatrixTest {
 	public void testMatrixEmpty() {
 		// [ 1 0 ]
 		// [ 0 1 ]
-		Matrix t = new Matrix(2,2);
+		Matrix<TestDouble> t = new Matrix<>(2,2);
 		assertEquals("Expected 2 rows",2, t.getRows());
 		assertEquals("Expected 2 columns", 2,t.getColumns());
 		try {
-			Matrix u = new Matrix(-1,1);
+			new Matrix<>(-1,1);
 			fail("Should throw illegal Argument Exception for rows < 1");
 		} catch (Exception e) {
 			assertEquals("Expected IllegalArgumentException", IllegalArgumentException.class,e.getClass());
 			assertEquals("Message should describe error", "Cannot create matrix with <1 rows", e.getMessage());
 		}
 		try {
-			Matrix u = new Matrix(1,-1);
+			new Matrix<>(1,-1);
 			fail("Should throw illegal Argument Exception for rows < 1");
 		} catch (Exception e) {
 			assertEquals("Expected IllegalArgumentException", IllegalArgumentException.class,e.getClass());
@@ -50,7 +50,7 @@ public class MatrixTest {
 
 	@Test
 	public void testMatrixConstructor() {
-		Matrix t = new Matrix(firstMatrixdata);
+		Matrix<TestDouble> t = new Matrix<>(firstMatrixdata);
 		assertEquals("Expected 3 rows", 3, t.getRows());
 		assertEquals("Expected 2 columns", 2, t.getColumns());
 		for(int r = 0; r < firstMatrixdata.length; r++) {
@@ -64,7 +64,7 @@ public class MatrixTest {
 				new TestDouble[] {new TestDouble(1), new TestDouble(2), new TestDouble(3), new TestDouble(7)},
 				new TestDouble[] {new TestDouble(2), new TestDouble(3)}
 			};
-			t = new Matrix(ragged);
+			new Matrix<TestDouble>(ragged);
 			fail("Should throw illegal argument exception for ragged matrix");
 		} catch(Exception e) {
 			assertEquals("Expected IllegalArgumentException", IllegalArgumentException.class,e.getClass());
@@ -76,7 +76,7 @@ public class MatrixTest {
 				null,
 				new TestDouble[] {new TestDouble(2), new TestDouble(3)}
 			};
-			t = new Matrix(sparse);
+			new Matrix<TestDouble>(sparse);
 		} catch( Exception e) {
 			assertEquals("Expected IllegalArgumentException", IllegalArgumentException.class,e.getClass());
 			assertEquals("Message should describe error", "No rows of a matrix can be null", e.getMessage());
@@ -85,19 +85,19 @@ public class MatrixTest {
 
 	@Test
 	public void testGetRows() {
-		Matrix t = new Matrix(firstMatrixdata);
+		Matrix<TestDouble> t = new Matrix<>(firstMatrixdata);
 		assertEquals("Number of rows should equal number of provided array", firstMatrixdata.length, t.getRows());
 	}
 
 	@Test
 	public void testGetColumns() {
-		Matrix t = new Matrix(firstMatrixdata);
+		Matrix<TestDouble> t = new Matrix<>(firstMatrixdata);
 		assertEquals("Number of columns should equal number of provided array", firstMatrixdata[0].length, t.getColumns());
 	}
 
 	@Test
 	public void testGetValue() {
-		Matrix t = new Matrix(firstMatrixdata);
+		Matrix<TestDouble> t = new Matrix<>(firstMatrixdata);
 		for(int r = 0; r < firstMatrixdata.length; r++) {
 			for(int c = 0; c < firstMatrixdata[0].length; c++) {
 				assertEquals(String.format("Value ad (%d,%d) should match", r, c), firstMatrixdata[r][c], t.getValue(r, c));
@@ -135,8 +135,8 @@ public class MatrixTest {
 
 	@Test
 	public void testSetValue() {
-		Matrix t = new Matrix(firstMatrixdata);
-		Matrix u = t.setValue(TestDouble.ZERO, 0, 0);
+		Matrix<TestDouble> t = new Matrix<>(firstMatrixdata);
+		Matrix<TestDouble> u = t.setValue(TestDouble.ZERO, 0, 0);
 		assertEquals("Setting value should return new matrix and not modify existing one", TestDouble.ONE, t.getValue(0, 0));
 		assertEquals("New matrix should have specified element set to specified value", TestDouble.ZERO, u.getValue(0, 0));
 		try {
@@ -171,31 +171,75 @@ public class MatrixTest {
 
 	@Test
 	public void testScalarMult() {
-		Matrix t = new Matrix(firstMatrixdata);
-		Matrix u = t.scalarMult(scalar);
+		Matrix<TestDouble> t = new Matrix<>(firstMatrixdata);
+		Matrix<TestDouble> u = t.scalarMult(scalar);
 		assertEquals("Scaled Matrix has same #rows", t.getRows(),u.getRows());
 		assertEquals("Scaled Matrix has same #cols", t.getColumns(),u.getColumns());
-		assertEquals("Scaled matrix is 2x original", new Matrix(scaledMatrixdata), u);
+		assertEquals("Scaled matrix is 2x original", new Matrix<TestDouble>(scaledMatrixdata), u);
 	}
 
 	@Test
 	public void testAdd() {
-		fail("Not yet implemented");
+		Matrix<TestDouble> t = new Matrix<>(firstMatrixdata);
+		Matrix<TestDouble> u = t.add(new Matrix<>(firstMatrixdata));
+		Matrix<TestDouble> expected = new Matrix<>(new TestDouble[][] {
+			new TestDouble[] {new TestDouble(2), new TestDouble(10)},
+			new TestDouble[] {new TestDouble(4), new TestDouble(6)},
+			new TestDouble[] {new TestDouble(2), new TestDouble(14)}
+		});
+		assertEquals("Matrix retains #rows after add", t.getRows(), u.getRows());
+		assertEquals("Matrix retains #cols after add", t.getColumns(), u.getColumns());
+		assertEquals("Matrix addition is element-wise", expected, u);
 	}
 
 	@Test
 	public void testSubtract() {
-		fail("Not yet implemented");
+		Matrix<TestDouble> t = new Matrix<>(firstMatrixdata);
+		Matrix<TestDouble> u = t.subtract(new Matrix<>(firstMatrixdata));
+		Matrix<TestDouble> expected = new Matrix<>(new TestDouble[][] {
+			new TestDouble[] {new TestDouble(0), new TestDouble(0)},
+			new TestDouble[] {new TestDouble(0), new TestDouble(0)},
+			new TestDouble[] {new TestDouble(0), new TestDouble(0)}
+		});
+		assertEquals("Matrix retains #rows after add", t.getRows(), u.getRows());
+		assertEquals("Matrix retains #cols after add", t.getColumns(), u.getColumns());
+		assertEquals("Matrix addition is element-wise", expected, u);
 	}
 
 	@Test
 	public void testTranspose() {
-		fail("Not yet implemented");
+		Matrix<TestDouble> t = new Matrix<>(secondMatrixData);
+		Matrix<TestDouble> u = t.transpose();
+		Matrix<TestDouble> expected = new Matrix<>(new TestDouble[][] {
+			new TestDouble[] {new TestDouble(1), new TestDouble(5)},
+			new TestDouble[] {new TestDouble(2), new TestDouble(2)},
+			new TestDouble[] {new TestDouble(3), new TestDouble(8)},
+			new TestDouble[] {new TestDouble(7), new TestDouble(1)}
+		});
+		assertEquals("Pre-transpose cols = post-transpose rows", t.getColumns(), u.getRows());
+		assertEquals("Pre-transpose rows = post-transpose columns", t.getRows(), u.getColumns());
+		assertEquals("Transposed Matrix has rows and columns sqapped", expected, u);
 	}
 
 	@Test
 	public void testMultiply() {
-		fail("Not yet implemented");
+		Matrix<TestDouble> m1 = new Matrix<>(new TestDouble[][] {
+			new TestDouble[] {new TestDouble(1),new TestDouble(2),new TestDouble(3)},
+			new TestDouble[] {new TestDouble(4),new TestDouble(5),new TestDouble(6)}
+		});
+		Matrix<TestDouble> m2 = new Matrix<>(new TestDouble[][] {
+			new TestDouble[] {new TestDouble(7), new TestDouble(8)},
+			new TestDouble[] {new TestDouble(9), new TestDouble(10)},
+			new TestDouble[] {new TestDouble(11), new TestDouble(12)},
+		});
+		Matrix<TestDouble> t = m1.multiply(m2);
+		Matrix<TestDouble> expected = new Matrix<>(new TestDouble[][] {
+			new TestDouble[] {new TestDouble(58), new TestDouble(64)},
+			new TestDouble[] {new TestDouble(139), new TestDouble(154)}
+		});
+		assertEquals("Should have similar row count", expected.getRows(), t.getRows());
+		assertEquals("Should have similar columns", expected.getColumns(), t.getColumns());
+		assertEquals("Result is dot product of elements", expected, t);
 	}
 
 	private static final class TestDouble extends ArithmeticPrimitive {
